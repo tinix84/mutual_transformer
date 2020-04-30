@@ -142,19 +142,23 @@ M =[ 1.3e-4, 1e-4, 1.6e-4, 1.6e-4; ...
     1.6e-4, 1.6e-4, 3.3e-4, 3.2e-4];
 
 %run optimizer
-x0=[RA; reshape(M,[],1)];
+x0=[RA; reshape(M',1,[])'];
+xs_mathcad=[277.5980; 6.7350e3; 344.5523; 6.2452e3; 1.2658e-4; 1.7846e-4; 1.4899e-4; 1.5551e-4; 1.2946e-4; 3.0500e-4; 3.1596e-4; 3.1620e-4];
+err=f_goal(xs_mathcad, f, R11, Rleak_12, Rleak_21, R22, LA, L11, Lleak_12, Lleak_21, L22, Rb, Lb)
+%x0=xs_mathcad;
+
 lb=zeros(size(x0));
-lb(5:end)=1e-4;
 ub=[];
 
 f_goal_x0=f_goal(x0, f, R11, Rleak_12, Rleak_21, R22, LA, L11, Lleak_12, Lleak_21, L22, Rb, Lb);
 
-options = optimoptions('fmincon','Display','iter','Algorithm','sqp');
+options = optimoptions('fmincon','Display','iter');
 [xs,fs,exitflag,output,lambda,grad,hessian] =...
     fmincon(@(x)f_goal(x, f, R11, Rleak_12, Rleak_21, R22, LA, L11, Lleak_12, Lleak_21, L22, Rb, Lb),...
     x0,[],[],[],[],lb,ub,[],options);
+abs(xs-xs_mathcad)./xs*100
 
-xs=[277.5980; 6.7350e3; 344.5523; 6.2452e3; 1.2658e-4; 1.7846e-4; 1.4899e-4; 1.5551e-4; 1.2946e-4; 3.0500e-4; 3.1596e-4; 3.1620e-4];
+% xs=xs_mathcad
 
 Rf=xs(1:4); Lf=LA;
 M=reshape(xs(5:end),4,[]).';
@@ -196,8 +200,8 @@ for n=1:length(f)
     Rleak12C(n,1)=real(Zleak12C(n,1));
     Lleak12C(n,1)=imag(Zleak12C(n,1))/w(n);
     
-    Ileak21=(Zsys_n)\[1;zeros(5,1)];
-    Zleak21C(n,1)=1./Ileak21(1,1);
+    Ileak21=(Zsys_n)\[0;1;zeros(4,1)];
+    Zleak21C(n,1)=1./Ileak21(2,1);
     Rleak21C(n,1)=real(Zleak21C(n,1));
     Lleak21C(n,1)=imag(Zleak21C(n,1))/w(n);
 end
